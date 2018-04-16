@@ -1,24 +1,18 @@
 import { error } from "./utils"
 
-const param = (url, parameter) => {
-    let reg = new RegExp("[?&]" + parameter + "=([^&#]*)", "i");
-    let res = reg.exec(url);
-
-    return res ? res[1] : null;
-};
-
 const parse = req => {
-	const url = req.url;
+	const url = new URL(req.url);
+	const find = name => url.searchParams.get(name);
 
 	return {
 		image:
-			param(url, "image") ||
-			param(url, "img") ||
-			param(url, "source") ||
-			param(url, "src") ||
+			find("image") ||
+			find("img") ||
+			find("source") ||
+			find("src") ||
 			error("Image parameter must be provided"),
-		height: Number(param(url, "height") || param(url, "h")),
-		width: Number(param(url, "width") || param(url, "w"))
+		height: Number(find("height") || find("h")),
+		width: Number(find("width") || find("w"))
 	};
 };
 
