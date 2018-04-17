@@ -2,17 +2,16 @@
 
 ## Prerequisities
 
-- Node v8.9.4 or higher
-- NPM v5.6.0 or higher
-- Install Fly:
-
-```
-npm install -g @fly/fly
-fly login
-```
+- Node v6.10.0
+- NPM v3.10.10
 
 ## Deploying
 
 ```
-fly deploy
+nvm install 6.10.0
+nvm use 6.10.0
+npm install
 ```
+
+- Zip the image-proxy folder
+- Upload to AWS using the online console
