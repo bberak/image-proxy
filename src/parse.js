@@ -1,8 +1,7 @@
-import { error } from "./utils"
+const { error, param, fragment } = require("./utils");
 
-const parse = req => {
-	const url = new URL(req.url);
-	const find = name => url.searchParams.get(name);
+const parse = url => {
+	const find = name => param(url, name);
 
 	return {
 		image:
@@ -10,10 +9,11 @@ const parse = req => {
 			find("img") ||
 			find("source") ||
 			find("src") ||
+			fragment(url) ||
 			error("Image parameter must be provided"),
 		height: Number(find("height") || find("h")),
 		width: Number(find("width") || find("w"))
 	};
 };
 
-export default parse
+module.exports = parse;

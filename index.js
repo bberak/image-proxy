@@ -1,21 +1,36 @@
-const sharp = require('sharp');
+const sharp = require("sharp");
+const parse = require("./src/parse");
 
-exports.handler = async (event) => {
-	
-    console.log("event", event)
-    console.log("sharp", sharp);
+exports.handler = (event, context, callback) => {
+	try {
+		const config = parse(event.Records[0].cf.uri);
 
-    //return 'Hello from Lambda!'
+		callback(null, {
+			body: "Hello from The Neap Team =) " + JSON.stringify(config),
+			headers: {
+				"x-neap": [
+					{
+						key: "X-Neap",
+						value: "true"
+					}
+				]
+			},
+			status: 200
+		});
+	} catch (err) {
+		callback(null, {
+			body: "Something went wrong: " + JSON.stringify(err),
+			headers: {
+				"x-neap": [
+					{
+						key: "X-Neap",
+						value: "true"
+					}
+				]
+			},
+			status: 500
+		});
+	}
 
-    const response = {
-	    body: 'This is coming from the Lambda!',
-	    bodyEncoding: 'text',
-	    headers: {
-	        'x-neap': [{
-	            key: 'X-Neap',
-	            value: 'true'
-	         }]
-	    },
-	    status: 200,
-	};
+	callback(null, response);
 };
