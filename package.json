@@ -4,7 +4,7 @@
   "description": "## Prerequisities",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha",
     "run-docker": "open --background -a Docker && while ! docker system info > /dev/null 2>&1; do sleep 1; done",
     "build-docker": "rm -rf node_modules/sharp && docker run -v \"$PWD\":/var/task lambci/lambda:build-nodejs6.10 npm install",
     "zip": "zip -r ../image-proxy *",
@@ -21,8 +21,11 @@
   },
   "homepage": "https://gitlab.com/neap/image-proxy#README",
   "dependencies": {
+    "axios": "^0.18.0",
     "md5": "^2.2.1",
     "sharp": "^0.20.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "mocha": "^5.1.1"
+  }
 }

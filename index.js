@@ -1,36 +1,41 @@
-const sharp = require("sharp");
 const parse = require("./src/parse");
+const request = require("./src/request");
+const scale = require("./src/scale");
 
 exports.handler = (event, context, callback) => {
-	try {
-		const config = parse(event.Records[0].cf.uri);
+	console.log("event", JSON.stringify(event));
 
-		callback(null, {
-			body: "Hello from The Neap Team =) " + JSON.stringify(config),
-			headers: {
-				"x-neap": [
-					{
-						key: "X-Neap",
-						value: "true"
-					}
-				]
-			},
-			status: 200
-		});
-	} catch (err) {
-		callback(null, {
-			body: "Something went wrong: " + JSON.stringify(err),
-			headers: {
-				"x-neap": [
-					{
-						key: "X-Neap",
-						value: "true"
-					}
-				]
-			},
-			status: 500
-		});
-	}
+	const { uri = "/", querystring = "" } = event.Records[0].cf.request;
+	const url = `${uri}?${querystring}`;
 
-	callback(null, response);
+	console.log("url", url);
+
+	new Promise(resolve => resolve(parse(url)))
+		.then(config => Promise.all([request(config.image), config]))
+		.then(([source, config]) =>
+			Promise.all([scale(source.data, config), source])
+		)
+		.then(([output, source]) => {
+			callback(null, {
+				status: 200,
+				body: output.toString("base64"),
+				bodyEncoding: "base64",
+				headers: {
+					"content-type": [
+						{
+							key: "Content-Type",
+							value: source.headers["content-type"]
+						}
+					]
+				}
+			});
+		})
+		.catch(err =>
+			callback(null, {
+				body: `Something went wrong: ${url} ${err} ${JSON.stringify(
+					event
+				)}`,
+				status: 500
+			})
+		);
 };
