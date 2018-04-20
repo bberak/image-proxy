@@ -1,9 +1,6 @@
 const sharp = require("sharp");
 
-const scale = (buffer, config) => {
-
-	console.log(sharp.format);
-	
+const scale = ({ buffer, config }) => {	
 	return sharp(buffer)
 		.resize(config.width, config.height)
 		.withoutEnlargement()

@@ -22,7 +22,6 @@
   "homepage": "https://gitlab.com/neap/image-proxy#README",
   "dependencies": {
     "axios": "^0.18.0",
-    "md5": "^2.2.1",
     "sharp": "^0.20.1"
   },
   "devDependencies": {
