@@ -2,16 +2,16 @@ const parse = require("./src/parse");
 const request = require("./src/request");
 const scale = require("./src/scale");
 
-const send = ({ callback, output, source }) => {
+const send = ({ callback, output }) => {
 	callback(null, {
 		status: 200,
-		body: output.toString("base64"),
+		body: output.data.toString("base64"),
 		bodyEncoding: "base64",
 		headers: {
 			"content-type": [
 				{
 					key: "Content-Type",
-					value: source.headers["content-type"]
+					value: `image/${output.info.format}`
 				}
 			]
 		}
@@ -32,7 +32,7 @@ exports.handler = (event, context, callback) => {
 
 	new Promise(resolve => resolve(parse(url)))
 		.then(config => Promise.all([request(config.image), config]))
-		.then(([source, config]) => Promise.all([scale({ buffer: source.data, config }), source]))
-		.then(([output, source]) => send({ callback, output, source }))
+		.then(([source, config]) => scale({ buffer: source.data, config }))
+		.then(output => send({ callback, output }))
 		.catch(err => error({ callback, url, err, event }));
 };
