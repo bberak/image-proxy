@@ -1,6 +1,7 @@
 const parse = require("./src/parse");
 const request = require("./src/request");
 const scale = require("./src/scale");
+const { hosify } = require("./src/utils");
 
 const send = ({ callback, output }) => {
 	callback(null, {
@@ -27,6 +28,12 @@ const error = ({ callback, url, err, event }) => {
 };
 
 exports.handler = (event, context, callback) => {
+
+	hosify(console, "theimgco-lambda-to-s3");
+
+	console.log("Find me!")
+	console.log("Find me again!")
+
 	const { uri = "/", querystring = "" } = event.Records[0].cf.request;
 	const url = `${uri}?${querystring}`;
 

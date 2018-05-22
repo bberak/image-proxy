@@ -21,6 +21,7 @@
   },
   "homepage": "https://gitlab.com/neap/image-proxy#README",
   "dependencies": {
+    "aws-sdk": "^2.243.1",
     "axios": "^0.18.0",
     "sharp": "^0.20.1"
   },
