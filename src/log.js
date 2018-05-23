@@ -3,27 +3,29 @@ AWS.config.update({ region: "us-east-1" });
 const firehose = new AWS.Firehose();
 
 const log = args => {
-	//-- invocation_id, width_param, height_param, image_param,
-	//-- source_width, source_height, source_bytes, source_format,
-	//-- output_width, output_height, output_bytes, output_format,
-	//-- error
-
 	const {
-		context,
-		config,
-		sourceMeta,
-		outputMeta,
-		error
+		context = {},
+		config = {},
+		sourceData = {},
+		sourceMeta = {},
+		outputMeta = {},
+		error = {}
 	} = args;
 
 	const data = {
-		invocation_id: context && context.awsRequestId,
-		width_param: config && config.width,
-		height_param: config && config.height,
-		image_param: config && config.image,
-		sourceMeta: sourceMeta,
-		outputMeta: outputMeta,
-		error: error && error.message
+		invocation_id: context.awsRequestId,
+		width_param: config.width,
+		height_param: config.height,
+		image_param: config.image,
+		source_width: sourceMeta.width,
+		source_height: sourceMeta.height,
+		source_format: sourceMeta.format,
+		source_bytes: sourceData.length,
+		output_width: outputMeta.width,
+		output_height: outputMeta.height,
+		output_format: outputMeta.format,
+		output_bytes: outputMeta.size,
+		error: error.message
 	};
 
 	console.log(data);

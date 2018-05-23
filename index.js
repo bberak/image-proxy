@@ -7,7 +7,7 @@ const ok = (callback, res) => {
 	log(res);
 	callback(null, {
 		status: 200,
-		body: res.output.toString("base64"),
+		body: res.outputData.toString("base64"),
 		bodyEncoding: "base64",
 		headers: {
 			"content-type": [
@@ -41,40 +41,35 @@ exports.handler = (event, context, callback) => {
 		//-- Parse the input parameters
 		resolve(parse(url));
 	})
-		.then(config => {
-			//-- Request the original image
-			res.config = config;
-			return request(config.image);
-		})
-		.then(({ data }) => {
-			//-- Load the image data
-			return load(data);
-		})
-		.then(source => {
-			//-- Get the original metadata
-			res.source = source;
-			return source.metadata();
-		})
-		.then(meta => {
-			//-- Scale the image
-			res.sourceMeta = meta;
-			//res.sourceMeta.size = res.source.byteLength;
-			console.log("keys", Object.keys(res.source));
-			console.log("source", res.source);
-			console.log("typeof", typeof res.source);
-
-			return scale({ source: res.source, config: res.config });
-		})
-		.then(({ data, info }) => {
-			//-- Respond with the scaled image
-
-			res.output = data;
-			res.outputMeta = info;
-			ok(callback, res);
-		})
-		.catch(err => {
-			//-- Respond with an error
-			res.error = err;
-			error(callback, res);
-		});
+	.then(config => {
+		//-- Request the original image
+		res.config = config;
+		return request(config.image);
+	})
+	.then(({ data }) => {
+		//-- Load the image data
+		res.sourceData = data;
+		return load(data);
+	})
+	.then(image => {
+		//-- Get the original metadata
+		res.image = image;
+		return image.metadata();
+	})
+	.then(sourceMeta => {
+		//-- Scale the image
+		res.sourceMeta = sourceMeta;
+		return scale({ image: res.image, config: res.config });
+	})
+	.then(({ data, info }) => {
+		//-- Respond with the scaled image
+		res.outputData = data;
+		res.outputMeta = info;
+		ok(callback, res);
+	})
+	.catch(err => {
+		//-- Respond with an error
+		res.error = err;
+		error(callback, res);
+	});
 };

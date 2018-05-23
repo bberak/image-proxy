@@ -4,8 +4,8 @@ const load = buffer => {
 	return sharp(buffer);
 };
 
-const scale = ({ source, config }) => {
-	return source
+const scale = ({ image, config }) => {
+	return image
 		.resize(config.width, config.height)
 		.withoutEnlargement()
 		.toBuffer({ resolveWithObject: true });
