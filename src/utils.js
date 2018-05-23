@@ -12,52 +12,7 @@ const param = (url, field) => {
 	return string ? string[1] : null;
 };
 
-const hosify = (logger, logStreamName, errorStreamName) => {
-	const _log = logger.log;
-	const _error = logger.error;
-
-	_log("Get here", logStreamName);
-
-	if (logStreamName) {
-
-		logger.log = (...args) => {
-
-			_log("log called...")
-
-			_log.apply(null, args);
-
-			const request = firehose.putRecord({
-				DeliveryStreamName: logStreamName,
-				Record: {
-					Data: new Buffer(JSON.stringify(args))
-				}
-			});
-
-			request.send();
-		};
-
-	}
-
-	/*
-	if (errorStreamName) {
-		logger.error = (...args) => {
-			_error.apply(null, args);
-
-			firehose.putRecord({
-				DeliveryStreamName: errorStreamName,
-				Record: {
-					Data: JSON.stringify(args)
-				}
-			});
-		};
-	}
-	*/
-
-	return logger;
-};
-
 module.exports = {
 	error,
-	param,
-	hosify
+	param
 };
