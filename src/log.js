@@ -33,7 +33,7 @@ const log = args => {
 	const request = firehose.putRecord({
 		DeliveryStreamName: "theimgco-lambda-to-s3",
 		Record: {
-			Data: new Buffer(JSON.stringify(data))
+			Data: new Buffer(JSON.stringify(data) + "\n")
 		}
 	});
 
