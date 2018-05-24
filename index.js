@@ -33,18 +33,24 @@ const error = (callback, res) => {
 };
 
 exports.handler = (event, context, callback) => {
-	const { uri = "/", querystring = "" } = event.Records[0].cf.request;
+	const { uri = "/", querystring = "", headers = {} } = event.Records[0].cf.request;
 	const url = `${uri}?${querystring}`;
 	const res = { event, context, url };
 
 	new Promise(resolve => {
-		//-- Parse the input parameters
-		resolve(parse(url));
+		//-- Parse the input parameters		
+		resolve(parse(url)); 
 	})
 	.then(config => {
-		//-- Request the original image
+		//-- Check for the x-theimgco header
 		res.config = config;
-		return request(config.image);
+		const found = Object.keys(headers).find(h => h.toLowerCase() == "x-theimgco");
+		if (found)
+			throw new Error("Found an x-theimgco header. Aborting operation.")
+	})
+	.then(() => {
+		//-- Request the original image
+		return request(res.config.image);
 	})
 	.then(({ data }) => {
 		//-- Load the image data
