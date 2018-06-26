@@ -2,6 +2,7 @@ const parse = require("./src/parse");
 const request = require("./src/request");
 const log = require("./src/log");
 const { load, scale } = require("./src/image");
+const filterous = require("filterous");
 
 const ok = (callback, res) => {
 	log(res);
@@ -36,6 +37,8 @@ exports.handler = (event, context, callback) => {
 	const { uri = "/", querystring = "", headers = {} } = event.Records[0].cf.request;
 	const url = `${uri}?${querystring}`;
 	const res = { event, context, url };
+
+	console.log("filterous", filterous);
 
 	new Promise(resolve => {
 		//-- Parse the input parameters		
