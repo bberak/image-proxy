@@ -17,6 +17,7 @@ const log = args => {
 		width_param: config.width,
 		height_param: config.height,
 		image_param: config.image,
+		filter_param: config.filter,
 		source_width: sourceMeta.width,
 		source_height: sourceMeta.height,
 		source_format: sourceMeta.format,

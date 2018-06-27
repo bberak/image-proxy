@@ -1,8 +1,7 @@
 const parse = require("./src/parse");
 const request = require("./src/request");
 const log = require("./src/log");
-const { load, scale } = require("./src/image");
-const filterous = require("filterous");
+const { load, scale, applyFilter } = require("./src/image");
 
 const ok = (callback, res) => {
 	log(res);
@@ -38,8 +37,6 @@ exports.handler = (event, context, callback) => {
 	const url = `${uri}?${querystring}`;
 	const res = { event, context, url };
 
-	console.log("filterous", filterous);
-
 	new Promise(resolve => {
 		//-- Parse the input parameters		
 		resolve(parse(url)); 
@@ -71,9 +68,13 @@ exports.handler = (event, context, callback) => {
 		return scale({ image: res.image, config: res.config });
 	})
 	.then(({ data, info }) => {
-		//-- Respond with the scaled image
-		res.outputData = data;
+		//-- Apply any filters
 		res.outputMeta = info;
+		return applyFilter({ buffer: data, filter: res.config.filter })
+	})
+	.then(data => {
+		//-- Respond with the final image
+		res.outputData = data;
 		ok(callback, res);
 	})
 	.catch(err => {

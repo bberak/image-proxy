@@ -12,7 +12,8 @@ const parse = url => {
 			find("src") ||
 			error(`Image parameter not found in url: ${url}`),
 		height: height && Number(height),
-		width: width && Number(width)
+		width: width && Number(width),
+		filter: find("filter")
 	};
 };
 
