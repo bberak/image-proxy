@@ -26,7 +26,7 @@ const log = args => {
 		output_format: outputMeta.format,
 		output_bytes: outputMeta.size,
 		error: error.message,
-		timestamp: new Date().getTime()
+		timestamp: new Date().getTime() / 1000
 	};
 
 	console.log(data);
