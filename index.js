@@ -1,32 +1,32 @@
 const parse = require("./src/parse");
 const request = require("./src/request");
 const log = require("./src/log");
-const { load, scale, applyFilter } = require("./src/image");
+const sharp = require("sharp");
+const filterous = require("filterous");
 
-const ok = (callback, res) => {
-	log(res);
+const ok = ({ callback, data, info }) => {
 	callback(null, {
 		status: 200,
-		body: res.outputData.toString("base64"),
+		body: data.toString("base64"),
 		bodyEncoding: "base64",
 		headers: {
 			"content-type": [
 				{
 					key: "Content-Type",
-					value: `image/${res.outputMeta.format}`
+					value: `image/${info.format}`
 				}
 			]
 		}
 	});
 };
 
-const error = (callback, res) => {
-	log(res);
+const exception = ({ callback, error, url, event, config }) => {
 	callback(null, {
 		body: JSON.stringify({
-			message: res.error.message,
-			url: res.url,
-			event: res.event
+			message: error.message,
+			url: url,
+			event: event,
+			config: config
 		}),
 		status: 500
 	});
@@ -35,51 +35,31 @@ const error = (callback, res) => {
 exports.handler = (event, context, callback) => {
 	const { uri = "/", querystring = "", headers = {} } = event.Records[0].cf.request;
 	const url = `${uri}?${querystring}`;
-	const res = { event, context, url };
+	const config = parse(url)
+	const looping = Object.keys(headers).find(h => h.toLowerCase() == "x-theimgco");
+		
+	if (looping)
+		throw new Error("Found an x-theimgco header. Aborting operation.")
 
-	new Promise(resolve => {
-		//-- Parse the input parameters		
-		resolve(parse(url)); 
-	})
-	.then(config => {
-		//-- Check for the x-theimgco header
-		res.config = config;
-		const found = Object.keys(headers).find(h => h.toLowerCase() == "x-theimgco");
-		if (found)
-			throw new Error("Found an x-theimgco header. Aborting operation.")
-	})
-	.then(() => {
-		//-- Request the original image
-		return request(res.config.image);
-	})
-	.then(({ data }) => {
-		//-- Load the image data
-		res.sourceData = data;
-		return load(data);
-	})
-	.then(image => {
-		//-- Get the original metadata
-		res.image = image;
-		return image.metadata();
-	})
-	.then(sourceMeta => {
-		//-- Scale the image
-		res.sourceMeta = sourceMeta;
-		return scale({ image: res.image, config: res.config });
-	})
-	.then(({ data, info }) => {
-		//-- Apply any filters
-		res.outputMeta = info;
-		return applyFilter({ buffer: data, filter: res.config.filter })
-	})
-	.then(data => {
-		//-- Respond with the final image
-		res.outputData = data;
-		ok(callback, res);
-	})
-	.catch(err => {
-		//-- Respond with an error
-		res.error = err;
-		error(callback, res);
-	});
+	request(config.image)
+		.then(res => res.data)
+		.then(sharp)
+		.then(img => img.resize(config.width, config.height))
+		.then(img => img.withoutEnlargement())
+		.then(img => config.metadata ? img.withMetadata() : img)
+		.then(img => img.toBuffer({ resolveWithObject: true  }))		
+		.then(({ data, info }) => {
+			if (config.filter) {
+				return filterous
+					.importImage(data)
+					.applyInstaFilter(config.filter)
+					.toBuffer()
+					.then(data => ({ data, info }))
+			}
+
+			return { data, info }
+		})
+		.then(({ data, info }) => ok({ callback, data, info }))
+		.catch(error =>  exception({ callback, error, event, url, config }))
+
 };

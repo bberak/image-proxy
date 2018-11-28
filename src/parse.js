@@ -13,7 +13,8 @@ const parse = url => {
 			error(`Image parameter not found in url: ${url}`),
 		height: height && Number(height),
 		width: width && Number(width),
-		filter: find("filter")
+		filter: find("filter"),
+		metadata: (find("meta") || find("metadata") || find("exif")) == "true"
 	};
 };
 
