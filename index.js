@@ -1,8 +1,9 @@
 const parse = require("./src/parse");
 const request = require("./src/request");
-const log = require("./src/log");
-const sharp = require("sharp");
-const filterous = require("filterous");
+const logger = require("./src/log");
+const { create, resize, getMetadata, toBuffer, raw, orient, toFormat, withMetadata, withoutEnlargement } = require("./src/sharp");
+const { pipe, cond, then, log } = require("./src/utils");
+const { rise } = require("./src/filters");
 
 const ok = ({ callback, data, info }) => {
 	callback(null, {
@@ -41,25 +42,42 @@ exports.handler = (event, context, callback) => {
 	if (looping)
 		throw new Error("Found an x-theimgco header. Aborting operation.")
 
-	request(config.image)
-		.then(res => res.data)
-		.then(sharp)
-		.then(img => img.resize(config.width, config.height))
-		.then(img => img.withoutEnlargement())
-		.then(img => config.metadata ? img.withMetadata() : img)
-		.then(img => img.toBuffer({ resolveWithObject: true  }))		
-		.then(({ data, info }) => {
-			if (config.filter) {
-				return filterous
-					.importImage(data)
-					.applyInstaFilter(config.filter)
-					.toBuffer()
-					.then(data => ({ data, info }))
-			}
+	const download = request(config.image);
 
-			return { data, info }
-		})
-		.then(({ data, info }) => ok({ callback, data, info }))
-		.catch(error =>  exception({ callback, error, event, url, config }))
+	const standard = pipe(
+		create(),
+		withMetadata(),
+		withoutEnlargement(),
+		resize(config.width, config.height),
+		toBuffer()
+	);
 
+	const filtered = pipe(
+		create(),
+		withMetadata(),
+		withoutEnlargement(),
+		resize(config.width, config.height),
+		getMetadata(),
+		then(({ image, metadata }) =>
+			pipe(
+				raw(),
+				toBuffer(),
+				then(({ data, info }) =>
+					pipe(
+						rise(info),
+						then(pipe(
+							orient(metadata.orientation),
+							toFormat(metadata.format),
+							toBuffer()
+						))
+					)(data)
+				)
+			)(image)
+		)
+	);
+
+	download
+		.then(res => config.filter ? filtered(res.data) : standard(res.data))
+		.then(({ data, info }) => ok({ data, info, callback }))
+		.catch(error => exception({ callback, error, event, url, config }));
 };

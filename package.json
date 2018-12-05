@@ -7,7 +7,7 @@
     "test": "mocha",
     "run-docker": "open --background -a Docker && while ! docker system info > /dev/null 2>&1; do sleep 1; done",
     "build-docker": "rm -rf node_modules/sharp && docker run -v \"$PWD\":/var/task lambci/lambda:build-nodejs6.10 npm install",
-    "strip-stuff": "rm -rf node_modules/aws-sdk && rm -rf node_modules/filterous/bin",
+    "strip-stuff": "rm -rf node_modules/aws-sdk",
     "zip": "zip -r ../image-proxy *",
     "build": "npm run run-docker && npm run build-docker && npm run strip-stuff && npm run zip"
   },
@@ -24,7 +24,7 @@
   "dependencies": {
     "aws-sdk": "^2.243.1",
     "axios": "^0.18.0",
-    "filterous": "git+https://github.com/bberak/filterous-2.git",
+    "lodash": "^4.17.11",
     "sharp": "^0.20.1"
   },
   "devDependencies": {
