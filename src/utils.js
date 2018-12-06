@@ -36,6 +36,8 @@ const map = (func, mapper) => input => {
 
 const thenMap = (func, handler) => input => func(input).then(output => handler(input, output));
 
+const promise = () => anything => new Promise(resolve => resolve(anything));
+
 module.exports = {
 	error,
 	param,
@@ -44,5 +46,6 @@ module.exports = {
 	then,
 	log,
 	map,
-	thenMap
+	thenMap,
+	promise
 };

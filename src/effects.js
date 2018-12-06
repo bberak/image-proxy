@@ -1,4 +1,4 @@
-//-- Based on https://github.com/bberak/filterous-2/blob/master/lib/filters.js
+const assert = require('assert');
 
 /**
  * References
@@ -77,6 +77,8 @@ const HSVtoRGB = (h, s, v) => {
 	return [r * 255, g * 255, b * 255];
 };
 
+const constrain = val => val > 255 ? 255 : val < 0 ? 0 : val;
+
 const grayscale = channels => pixels => {
 	for (let i = 0; i < pixels.length; i += channels) {
 		let r = pixels[i],
@@ -118,9 +120,9 @@ const brightness = (channels, adj) => pixels => {
 	adj = adj < -1 ? -1 : adj;
 	adj = ~~(255 * adj);
 	for (let i = 0; i < pixels.length; i += channels) {
-		pixels[i] += adj;
-		pixels[i + 1] += adj;
-		pixels[i + 2] += adj;
+		pixels[i] = constrain(pixels[i] + adj);
+		pixels[i + 1] = constrain(pixels[i + 1] + adj);
+		pixels[i + 2] = constrain(pixels[i + 2] + adj);
 	}
 	return pixels;
 };
@@ -226,6 +228,32 @@ const convolute = (channels, weights, width, height) => pixels => {
 	return pixels;
 };
 
+const blend = overlay => base => {
+	assert.equal(base.length, overlay.length, "Pixel buffers must be the same size when blending");
+
+	let rA,gA,bA,aA,rB,gB,bB,aB = 0 
+
+	for (var i = 0; i < base.length; i += 4) {
+		
+		rA = overlay[i];
+		gA = overlay[i + 1];
+		bA = overlay[i + 2];
+		aA = overlay[i + 3];
+
+		rB = base[i];
+		gB = base[i + 1];
+		bB = base[i + 2];
+		aB = base[i + 3];
+
+		base[i]      = (rA * aA / 255) + (rB * aB * (255 - aA) / (255*255))
+		base[i + 1]  = (gA * aA / 255) + (gB * aB * (255 - aA) / (255*255))
+		base[i + 2]  = (bA * aA / 255) + (bB * aB * (255 - aA) / (255*255))
+		base[i + 3]  = aA + (aB * (255 - aA) / 255)
+	}
+
+	return base;
+};
+
 module.exports = {
 	RGBtoHSV,
 	HSVtoRGB,
@@ -239,5 +267,6 @@ module.exports = {
 	contrast,
 	colorFilter,
 	rgbAdjust,
-	convolute
+	convolute,
+	blend
 };

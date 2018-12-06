@@ -3,7 +3,7 @@ const request = require("./src/request");
 const logger = require("./src/log");
 const { create, resize, getMetadata, toBuffer, raw, orient, toFormat, withMetadata, withoutEnlargement } = require("./src/sharp");
 const { pipe, cond, then, log } = require("./src/utils");
-const { rise } = require("./src/filters");
+const filters = require("./src/filters");
 
 const ok = ({ callback, data, info }) => {
 	callback(null, {
@@ -64,7 +64,7 @@ exports.handler = (event, context, callback) => {
 				toBuffer(),
 				then(({ data, info }) =>
 					pipe(
-						rise(info),
+						filters.get(config.filter)(info),
 						then(pipe(
 							orient(metadata.orientation),
 							toFormat(metadata.format),
@@ -78,6 +78,6 @@ exports.handler = (event, context, callback) => {
 
 	download
 		.then(res => config.filter ? filtered(res.data) : standard(res.data))
-		.then(({ data, info }) => ok({ data, info, callback }))
-		.catch(error => exception({ callback, error, event, url, config }));
+		.then(({ data, info }) => ok({ callback, data, info  }))
+		.catch(error => exception({ callback, error, url, event, config }));
 };

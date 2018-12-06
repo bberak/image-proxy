@@ -4,6 +4,9 @@ const firehose = new AWS.Firehose();
 
 const log = args => {
 	const {
+		event = {},
+		error = {},
+		url = "",
 		context = {},
 		config = {},
 		sourceData = {},

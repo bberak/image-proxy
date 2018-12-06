@@ -1,6 +1,6 @@
 const sharp = require("sharp");
 
-const create = options => buffer => sharp(buffer, options).withoutEnlargement().withMetadata();
+const create = options => buffer => sharp(buffer, options);
 
 const withMetadata = () => image => image.withMetadata();
 
@@ -16,9 +16,14 @@ const toBuffer = () => image => image.toBuffer({ resolveWithObject: true });
 
 const toFormat = format => image => image.toFormat(format);
 
-const getMetadata = () => image => image.metadata().then(metadata => ({ image, metadata }));
+const getMetadata = () => image =>
+	image.metadata().then(metadata => ({ image, metadata }));
 
 const overlayWith = (buffer, options) => image => image.overlayWith(buffer, options);
+
+const toColorspace = colorspace => image => image.toColorspace(colorspace);
+
+const joinChannel = options => image => image.joinChannel(options);
 
 module.exports = {
 	sharp,
@@ -31,5 +36,8 @@ module.exports = {
 	toBuffer,
 	toFormat,
 	getMetadata,
-	overlayWith
+	overlayWith,
+	toColorspace,
+	toColourspace: toColorspace,
+	joinChannel
 };
