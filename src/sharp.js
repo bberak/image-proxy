@@ -16,8 +16,7 @@ const toBuffer = () => image => image.toBuffer({ resolveWithObject: true });
 
 const toFormat = format => image => image.toFormat(format);
 
-const getMetadata = () => image =>
-	image.metadata().then(metadata => ({ image, metadata }));
+const getMetadata = () => image => image.metadata().then(metadata => ({ image, metadata }));
 
 const overlayWith = (buffer, options) => image => image.overlayWith(buffer, options);
 

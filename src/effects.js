@@ -148,9 +148,9 @@ const saturation = (channels, adj) => pixels => {
 			g = pixels[i + 1],
 			b = pixels[i + 2];
 		let gray = 0.2989 * r + 0.587 * g + 0.114 * b; //-- Weights from CCIR 601 spec
-		pixels[i] = -gray * adj + pixels[i] * (1 + adj);
-		pixels[i + 1] = -gray * adj + pixels[i + 1] * (1 + adj);
-		pixels[i + 2] = -gray * adj + pixels[i + 2] * (1 + adj);
+		pixels[i] = constrain(-gray * adj + pixels[i] * (1 + adj));
+		pixels[i + 1] = constrain(-gray * adj + pixels[i + 1] * (1 + adj));
+		pixels[i + 2] = constrain(-gray * adj + pixels[i + 2] * (1 + adj));
 	}
 	return pixels;
 };
