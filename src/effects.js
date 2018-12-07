@@ -77,7 +77,7 @@ const HSVtoRGB = (h, s, v) => {
 	return [r * 255, g * 255, b * 255];
 };
 
-const constrain = val => val > 255 ? 255 : val < 0 ? 0 : val;
+const clamp = val => val > 255 ? 255 : val < 0 ? 0 : val;
 
 const grayscale = channels => pixels => {
 	for (let i = 0; i < pixels.length; i += channels) {
@@ -120,9 +120,9 @@ const brightness = (channels, adj) => pixels => {
 	adj = adj < -1 ? -1 : adj;
 	adj = ~~(255 * adj);
 	for (let i = 0; i < pixels.length; i += channels) {
-		pixels[i] = constrain(pixels[i] + adj);
-		pixels[i + 1] = constrain(pixels[i + 1] + adj);
-		pixels[i + 2] = constrain(pixels[i + 2] + adj);
+		pixels[i] = clamp(pixels[i] + adj);
+		pixels[i + 1] = clamp(pixels[i + 1] + adj);
+		pixels[i + 2] = clamp(pixels[i + 2] + adj);
 	}
 	return pixels;
 };
@@ -148,9 +148,9 @@ const saturation = (channels, adj) => pixels => {
 			g = pixels[i + 1],
 			b = pixels[i + 2];
 		let gray = 0.2989 * r + 0.587 * g + 0.114 * b; //-- Weights from CCIR 601 spec
-		pixels[i] = constrain(-gray * adj + pixels[i] * (1 + adj));
-		pixels[i + 1] = constrain(-gray * adj + pixels[i + 1] * (1 + adj));
-		pixels[i + 2] = constrain(-gray * adj + pixels[i + 2] * (1 + adj));
+		pixels[i] = clamp(-gray * adj + pixels[i] * (1 + adj));
+		pixels[i + 1] = clamp(-gray * adj + pixels[i + 1] * (1 + adj));
+		pixels[i + 2] = clamp(-gray * adj + pixels[i + 2] * (1 + adj));
 	}
 	return pixels;
 };
