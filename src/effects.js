@@ -85,7 +85,7 @@ const grayscale = channels => pixels => {
 			g = pixels[i + 1],
 			b = pixels[i + 2];
 		let avg = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-		pixels[i] = pixels[i + 1] = pixels[i + 2] = avg;
+		pixels[i] = pixels[i + 1] = pixels[i + 2] = clamp(avg);
 	}
 	return pixels;
 };

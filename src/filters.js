@@ -1,4 +1,4 @@
-const { colorFilter, brightness, saturation, rgbAdjust } = require("./effects");
+const { colorFilter, brightness, saturation, rgbAdjust, grayscale } = require("./effects");
 const { pipe, then, promise } = require("./utils");
 const { create, resize, toBuffer, overlayWith } = require("./sharp");
 
@@ -46,10 +46,19 @@ const perpetua = ({ width, height, channels }) => pixels =>
 		promise()
 	)(pixels);
 
+//-- Inkwell: Direct shift to black and white
+const inkwell = ({ width, height, channels }) => pixels =>
+	pipe(
+		grayscale(channels, 1),
+		create({ raw: { width, height, channels } }),
+		promise()
+	)(pixels);
+
 const filters = {
 	rise,
 	amaro,
-	perpetua
+	perpetua,
+	inkwell
 };
 
 const get = name => {
