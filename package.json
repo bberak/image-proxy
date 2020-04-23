@@ -1,7 +1,7 @@
 {
   "name": "image-proxy",
   "version": "1.0.0",
-  "description": "## Prerequisities",
+  "description": "Image proxy",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
@@ -14,8 +14,7 @@
     "type": "git",
     "url": "git+https://gitlab.com/neap/image-proxy.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "bberak",
   "bugs": {
     "url": "https://gitlab.com/neap/image-proxy/issues"
   },
