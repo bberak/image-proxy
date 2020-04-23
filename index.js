@@ -1,6 +1,5 @@
 const parse = require("./src/parse");
 const request = require("./src/request");
-const logger = require("./src/log");
 const { create, resize, getMetadata, toBuffer, raw, orient, toFormat, withMetadata, withoutEnlargement } = require("./src/sharp");
 const { pipe, cond, then, log } = require("./src/utils");
 const filters = require("./src/filters");
