@@ -1,32 +1,32 @@
 const parse = require("./src/parse");
 const request = require("./src/request");
-const log = require("./src/log");
-const { load, scale } = require("./src/image");
+const { create, resize, getMetadata, toBuffer, raw, orient, toFormat, withMetadata, withoutEnlargement } = require("./src/sharp");
+const { pipe, cond, then, log } = require("./src/utils");
+const filters = require("./src/filters");
 
-const ok = (callback, res) => {
-	log(res);
+const ok = ({ callback, data, info }) => {
 	callback(null, {
 		status: 200,
-		body: res.outputData.toString("base64"),
+		body: data.toString("base64"),
 		bodyEncoding: "base64",
 		headers: {
 			"content-type": [
 				{
 					key: "Content-Type",
-					value: `image/${res.outputMeta.format}`
+					value: `image/${info.format}`
 				}
 			]
 		}
 	});
 };
 
-const error = (callback, res) => {
-	log(res);
+const exception = ({ callback, error, url, event, config }) => {
 	callback(null, {
 		body: JSON.stringify({
-			message: res.error.message,
-			url: res.url,
-			event: res.event
+			message: error.message,
+			url: url,
+			event: event,
+			config: config
 		}),
 		status: 500
 	});
@@ -35,47 +35,48 @@ const error = (callback, res) => {
 exports.handler = (event, context, callback) => {
 	const { uri = "/", querystring = "", headers = {} } = event.Records[0].cf.request;
 	const url = `${uri}?${querystring}`;
-	const res = { event, context, url };
+	const config = parse(url)
+	const looping = Object.keys(headers).find(h => h.toLowerCase() == "x-theimgco");
+		
+	if (looping)
+		throw new Error("Found an x-theimgco header. Aborting operation.")
 
-	new Promise(resolve => {
-		//-- Parse the input parameters		
-		resolve(parse(url)); 
-	})
-	.then(config => {
-		//-- Check for the x-theimgco header
-		res.config = config;
-		const found = Object.keys(headers).find(h => h.toLowerCase() == "x-theimgco");
-		if (found)
-			throw new Error("Found an x-theimgco header. Aborting operation.")
-	})
-	.then(() => {
-		//-- Request the original image
-		return request(res.config.image);
-	})
-	.then(({ data }) => {
-		//-- Load the image data
-		res.sourceData = data;
-		return load(data);
-	})
-	.then(image => {
-		//-- Get the original metadata
-		res.image = image;
-		return image.metadata();
-	})
-	.then(sourceMeta => {
-		//-- Scale the image
-		res.sourceMeta = sourceMeta;
-		return scale({ image: res.image, config: res.config });
-	})
-	.then(({ data, info }) => {
-		//-- Respond with the scaled image
-		res.outputData = data;
-		res.outputMeta = info;
-		ok(callback, res);
-	})
-	.catch(err => {
-		//-- Respond with an error
-		res.error = err;
-		error(callback, res);
-	});
+	const download = request(config.image);
+
+	const standard = pipe(
+		create(),
+		withMetadata(),
+		withoutEnlargement(),
+		resize(config.width, config.height),
+		toBuffer()
+	);
+
+	const filtered = pipe(
+		create(),
+		withMetadata(),
+		withoutEnlargement(),
+		resize(config.width, config.height),
+		getMetadata(),
+		then(({ image, metadata }) =>
+			pipe(
+				raw(),
+				toBuffer(),
+				then(({ data, info }) =>
+					pipe(
+						filters.get(config.filter)(info),
+						then(pipe(
+							orient(metadata.orientation),
+							toFormat(metadata.format),
+							toBuffer()
+						))
+					)(data)
+				)
+			)(image)
+		)
+	);
+
+	download
+		.then(res => config.filter ? filtered(res.data) : standard(res.data))
+		.then(({ data, info }) => ok({ callback, data, info  }))
+		.catch(error => exception({ callback, error, url, event, config }));
 };

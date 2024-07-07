@@ -4,6 +4,9 @@ const firehose = new AWS.Firehose();
 
 const log = args => {
 	const {
+		event = {},
+		error = {},
+		url = "",
 		context = {},
 		config = {},
 		sourceData = {},
@@ -17,6 +20,7 @@ const log = args => {
 		width_param: config.width,
 		height_param: config.height,
 		image_param: config.image,
+		filter_param: config.filter,
 		source_width: sourceMeta.width,
 		source_height: sourceMeta.height,
 		source_format: sourceMeta.format,
@@ -26,7 +30,7 @@ const log = args => {
 		output_format: outputMeta.format,
 		output_bytes: outputMeta.size,
 		error: error.message,
-		timestamp: new Date().getTime()
+		timestamp: new Date().getTime() / 1000
 	};
 
 	console.log(data);
